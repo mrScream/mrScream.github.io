@@ -3,8 +3,9 @@ const target = document.getElementById("target");
 const scoreText = document.getElementById("score");
 
 let score = 0;
-let moveInterval = 1000; // Start at 1 second
+let moveInterval = 1000;
 let timer;
+let gameOver = false;
 
 function move() {
     const x = Math.random() * (window.innerWidth - 80);
@@ -18,16 +19,33 @@ function startTimer() {
     timer = setInterval(move, moveInterval);
 }
 
-target.addEventListener("pointerdown", () => {
+function endGame() {
+    if (gameOver) return;
+    gameOver = true;
+    clearInterval(timer);
+    alert("Game Over!\nFinal Score: " + score);
+}
+
+// Tap on the target
+target.addEventListener("pointerdown", (e) => {
+    e.stopPropagation(); // Prevents the body from receiving this tap
+
+    if (gameOver) return;
+
     score++;
     scoreText.textContent = "Score: " + score;
     move();
 
-    // Every 10 points, make the target move 10% faster
+    // Increase speed by 10% every 10 points
     if (score % 10 === 0) {
-        moveInterval *= 0.9; // 10% shorter interval = 10% faster
+        moveInterval *= 0.9;
         startTimer();
     }
+});
+
+// Tap anywhere else = Game Over
+document.body.addEventListener("pointerdown", () => {
+    endGame();
 });
 
 move();
