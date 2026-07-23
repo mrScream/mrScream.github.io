@@ -1,63 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tap Target Game</title>
-<style>
-body{
-    margin:0;
-    overflow:hidden;
-    background:#222;
-    font-family:Arial,sans-serif;
-    color:white;
-}
-#score{
-    position:absolute;
-    top:10px;
-    left:10px;
-    font-size:28px;
-    z-index:10;
-}
-#target{
-    position:absolute;
-    width:80px;
-    height:80px;
-    border-radius:50%;
-    background:#ff4444;
-    box-shadow:0 0 20px red;
-    touch-action:manipulation;
-}
-</style>
-</head>
-<body>
-
-<div id="score">Score: 0</div>
-<div id="target"></div>
-
 <script>
-const target=document.getElementById("target");
-const scoreText=document.getElementById("score");
-let score=0;
+const target = document.getElementById("target");
+const scoreText = document.getElementById("score");
 
-function move(){
-    const x=Math.random()*(window.innerWidth-80);
-    const y=Math.random()*(window.innerHeight-80);
-    target.style.left=x+"px";
-    target.style.top=y+"px";
+let score = 0;
+let moveInterval = 1000; // Start at 1 second
+let timer;
+
+function move() {
+    const x = Math.random() * (window.innerWidth - 80);
+    const y = Math.random() * (window.innerHeight - 80);
+    target.style.left = x + "px";
+    target.style.top = y + "px";
 }
 
-target.addEventListener("pointerdown",()=>{
+function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(move, moveInterval);
+}
+
+target.addEventListener("pointerdown", () => {
     score++;
-    scoreText.textContent="Score: "+score;
+    scoreText.textContent = "Score: " + score;
     move();
+
+    // Every 10 points, make the target move 10% faster
+    if (score % 10 === 0) {
+        moveInterval *= 0.9; // 10% shorter interval = 10% faster
+        startTimer();
+    }
 });
 
 move();
-
-// Move every second if player doesn't tap
-setInterval(move,1000);
+startTimer();
 </script>
-
-</body>
-</html>
