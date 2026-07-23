@@ -1,3 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tap Target Game</title>
+
+<style>
+body{
+    margin:0;
+    overflow:hidden;
+    background:#222;
+    font-family:Arial,sans-serif;
+    color:white;
+}
+
+#score{
+    position:absolute;
+    top:10px;
+    left:10px;
+    font-size:28px;
+    z-index:10;
+}
+
+#target{
+    position:absolute;
+    width:80px;
+    height:80px;
+    border-radius:50%;
+    background:#ff4444;
+    box-shadow:0 0 20px red;
+    touch-action:manipulation;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="score">Score: 0</div>
+<div id="target"></div>
+
 <script>
 const target = document.getElementById("target");
 const scoreText = document.getElementById("score");
@@ -8,8 +49,11 @@ let timer;
 let gameOver = false;
 
 function move() {
+    if (gameOver) return;
+
     const x = Math.random() * (window.innerWidth - 80);
     const y = Math.random() * (window.innerHeight - 80);
+
     target.style.left = x + "px";
     target.style.top = y + "px";
 }
@@ -21,33 +65,41 @@ function startTimer() {
 
 function endGame() {
     if (gameOver) return;
+
     gameOver = true;
     clearInterval(timer);
-    alert("Game Over!\nFinal Score: " + score);
+
+    setTimeout(() => {
+        alert("Game Over!\n\nFinal Score: " + score);
+    }, 50);
 }
 
-// Tap on the target
-target.addEventListener("pointerdown", (e) => {
-    e.stopPropagation(); // Prevents the body from receiving this tap
+// Tap the target
+target.addEventListener("pointerdown", function(e) {
+    e.stopPropagation();
 
     if (gameOver) return;
 
     score++;
     scoreText.textContent = "Score: " + score;
-    move();
 
-    // Increase speed by 10% every 10 points
+    // Every 10 points, increase speed by 10%
     if (score % 10 === 0) {
         moveInterval *= 0.9;
         startTimer();
     }
+
+    move();
 });
 
 // Tap anywhere else = Game Over
-document.body.addEventListener("pointerdown", () => {
+document.body.addEventListener("pointerdown", function() {
     endGame();
 });
 
 move();
 startTimer();
 </script>
+
+</body>
+</html>
