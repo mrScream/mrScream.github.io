@@ -71,34 +71,44 @@ function endGame() {
     clearInterval(timer);
 
     setTimeout(() => {
-        alert("Game Over!\n\nFinal Score: " + score);
+        const restart = confirm(
+            "Game Over!\n\nFinal Score: " + score + "\n\nDo you want to play again?"
+        );
+
+        if (restart) {
+            location.reload();
+        }
     }, 50);
 }
 
-// Handle all touches/clicks
+// Handle all clicks/touches
 document.addEventListener("pointerdown", function(e) {
     if (gameOver) return;
 
     if (e.target === target) {
-        // Ball tapped
+        // Target tapped
         score++;
         scoreText.textContent = "Score: " + score;
 
         // Increase speed every 10 points
         if (score % 10 === 0) {
-            moveInterval *= 0.9;
+            moveInterval *= 0.9; // 10% faster
             startTimer();
         }
 
         move();
     } else {
-        // Anywhere else = Game Over
+        // Missed the target
         endGame();
     }
 });
 
+// Initial setup
 move();
 startTimer();
+
+// Keep target inside screen after resizing
+window.addEventListener("resize", move);
 </script>
 
 </body>
