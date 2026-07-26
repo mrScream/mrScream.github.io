@@ -6,20 +6,25 @@
 <title>Tap Target Game</title>
 
 <style>
+*{
+    box-sizing:border-box;
+}
+
 body{
     margin:0;
     overflow:hidden;
     background:#222;
-    font-family:Arial,sans-serif;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     color:white;
     touch-action:manipulation;
 }
 
 #score{
     position:absolute;
-    top:10px;
-    left:10px;
-    font-size:28px;
+    top:15px;
+    left:15px;
+    font-size:30px;
+    font-weight:bold;
     z-index:10;
 }
 
@@ -28,10 +33,82 @@ body{
     width:80px;
     height:80px;
     border-radius:50%;
-    background:#ff4444;
+    background:linear-gradient(135deg,#ff4d4d,#ff0000);
     box-shadow:0 0 20px red;
     cursor:pointer;
-    touch-action:manipulation;
+}
+
+/* Popup */
+
+#overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:100;
+}
+
+#popup{
+    width:90%;
+    max-width:340px;
+    background:white;
+    border-radius:24px;
+    padding:25px;
+    text-align:center;
+    color:#222;
+    animation:pop .25s ease;
+    box-shadow:0 15px 40px rgba(0,0,0,.35);
+}
+
+@keyframes pop{
+    from{
+        transform:scale(.7);
+        opacity:0;
+    }
+    to{
+        transform:scale(1);
+        opacity:1;
+    }
+}
+
+#popup h1{
+    margin:0;
+    color:#ff3b30;
+    font-size:34px;
+}
+
+#popup p{
+    font-size:22px;
+    margin:20px 0;
+}
+
+.buttons{
+    display:flex;
+    gap:12px;
+}
+
+button{
+    flex:1;
+    border:none;
+    border-radius:14px;
+    padding:15px;
+    font-size:18px;
+    font-weight:bold;
+    color:white;
+}
+
+#restart{
+    background:#34c759;
+}
+
+#close{
+    background:#0a84ff;
+}
+
+button:active{
+    transform:scale(.96);
 }
 </style>
 </head>
@@ -40,78 +117,89 @@ body{
 <div id="score">Score: 0</div>
 <div id="target"></div>
 
+<div id="overlay">
+    <div id="popup">
+        <h1>🎮 Game Over</h1>
+        <p id="finalScore"></p>
+
+        <div class="buttons">
+            <button id="restart">🔄 Play Again</button>
+            <button id="close">❌ Exit</button>
+        </div>
+    </div>
+</div>
+
 <script>
-const target = document.getElementById("target");
-const scoreText = document.getElementById("score");
+const target=document.getElementById("target");
+const scoreText=document.getElementById("score");
+const overlay=document.getElementById("overlay");
+const finalScore=document.getElementById("finalScore");
+const restart=document.getElementById("restart");
+const closeBtn=document.getElementById("close");
 
-let score = 0;
-let moveInterval = 1000;
+let score=0;
+let moveInterval=1000;
 let timer;
-let gameOver = false;
+let gameOver=false;
 
-function move() {
-    if (gameOver) return;
+function move(){
+    if(gameOver) return;
 
-    const x = Math.random() * (window.innerWidth - 80);
-    const y = Math.random() * (window.innerHeight - 80);
-
-    target.style.left = x + "px";
-    target.style.top = y + "px";
+    target.style.left=Math.random()*(window.innerWidth-80)+"px";
+    target.style.top=Math.random()*(window.innerHeight-80)+"px";
 }
 
-function startTimer() {
+function startTimer(){
     clearInterval(timer);
-    timer = setInterval(move, moveInterval);
+    timer=setInterval(move,moveInterval);
 }
 
-function endGame() {
-    if (gameOver) return;
+function endGame(){
+    if(gameOver) return;
 
-    gameOver = true;
+    gameOver=true;
     clearInterval(timer);
 
-    setTimeout(() => {
-        // First dialog
-        const playAgain = confirm("Game Over!\n\nPlay again?");
+    finalScore.innerHTML=
+        "🏆 Final Score<br><strong style='font-size:42px;color:#ff9500'>"+score+"</strong>";
 
-        if (playAgain) {
-            // Restart game
-            location.reload();
-        } else {
-            // Second dialog
-            alert("Final Score: " + score + "\n\nThanks for playing!");
-        }
-    }, 50);
+    overlay.style.display="flex";
 }
 
-// Handle all touches/clicks
-document.addEventListener("pointerdown", function(e) {
-    if (gameOver) return;
+document.addEventListener("pointerdown",e=>{
 
-    if (e.target === target) {
-        // Target tapped
+    if(gameOver) return;
+
+    if(e.target===target){
+
         score++;
-        scoreText.textContent = "Score: " + score;
+        scoreText.textContent="Score: "+score;
 
-        // Increase speed every 10 points
-        if (score % 10 === 0) {
-            moveInterval *= 0.9; // 10% faster
+        if(score%10===0){
+            moveInterval*=0.9;
             startTimer();
         }
 
         move();
-    } else {
-        // Missed the target
+
+    }else{
+
         endGame();
+
     }
+
 });
 
-// Initial setup
+restart.onclick=()=>location.reload();
+
+closeBtn.onclick=()=>{
+    overlay.style.display="none";
+};
+
 move();
 startTimer();
 
-// Keep target on screen if window size changes
-window.addEventListener("resize", move);
+window.addEventListener("resize",move);
 </script>
 
 </body>
