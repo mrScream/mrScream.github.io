@@ -12,6 +12,7 @@ body{
     background:#222;
     font-family:Arial,sans-serif;
     color:white;
+    touch-action:manipulation;
 }
 
 #score{
@@ -29,8 +30,8 @@ body{
     border-radius:50%;
     background:#ff4444;
     box-shadow:0 0 20px red;
-    touch-action:manipulation;
     cursor:pointer;
+    touch-action:manipulation;
 }
 </style>
 </head>
@@ -74,27 +75,26 @@ function endGame() {
     }, 50);
 }
 
-// Tap the target
-target.addEventListener("pointerdown", function(e) {
-    e.stopPropagation();
-
+// Handle all touches/clicks
+document.addEventListener("pointerdown", function(e) {
     if (gameOver) return;
 
-    score++;
-    scoreText.textContent = "Score: " + score;
+    if (e.target === target) {
+        // Ball tapped
+        score++;
+        scoreText.textContent = "Score: " + score;
 
-    // Every 10 points, increase speed by 10%
-    if (score % 10 === 0) {
-        moveInterval *= 0.9;
-        startTimer();
+        // Increase speed every 10 points
+        if (score % 10 === 0) {
+            moveInterval *= 0.9;
+            startTimer();
+        }
+
+        move();
+    } else {
+        // Anywhere else = Game Over
+        endGame();
     }
-
-    move();
-});
-
-// Tap anywhere else = Game Over
-document.body.addEventListener("pointerdown", function() {
-    endGame();
 });
 
 move();
