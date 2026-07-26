@@ -71,17 +71,20 @@ function endGame() {
     clearInterval(timer);
 
     setTimeout(() => {
-        const restart = confirm(
-            "Game Over!\n\nFinal Score: " + score + "\n\nDo you want to play again?"
-        );
+        // First dialog
+        const playAgain = confirm("Game Over!\n\nPlay again?");
 
-        if (restart) {
+        if (playAgain) {
+            // Restart game
             location.reload();
+        } else {
+            // Second dialog
+            alert("Final Score: " + score + "\n\nThanks for playing!");
         }
     }, 50);
 }
 
-// Handle all clicks/touches
+// Handle all touches/clicks
 document.addEventListener("pointerdown", function(e) {
     if (gameOver) return;
 
@@ -107,7 +110,7 @@ document.addEventListener("pointerdown", function(e) {
 move();
 startTimer();
 
-// Keep target inside screen after resizing
+// Keep target on screen if window size changes
 window.addEventListener("resize", move);
 </script>
 
