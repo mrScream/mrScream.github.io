@@ -38,8 +38,6 @@ body{
     cursor:pointer;
 }
 
-/* Popup */
-
 #overlay{
     position:fixed;
     inset:0;
@@ -52,41 +50,30 @@ body{
 
 #popup{
     width:90%;
-    max-width:340px;
+    max-width:360px;
+    max-height:90vh;
+    overflow:auto;
     background:white;
     border-radius:24px;
     padding:25px;
     text-align:center;
     color:#222;
-    animation:pop .25s ease;
     box-shadow:0 15px 40px rgba(0,0,0,.35);
-}
-
-@keyframes pop{
-    from{
-        transform:scale(.7);
-        opacity:0;
-    }
-    to{
-        transform:scale(1);
-        opacity:1;
-    }
 }
 
 #popup h1{
     margin:0;
     color:#ff3b30;
-    font-size:34px;
 }
 
 #popup p{
     font-size:22px;
-    margin:20px 0;
 }
 
 .buttons{
     display:flex;
     gap:12px;
+    margin-top:20px;
 }
 
 button{
@@ -110,60 +97,226 @@ button{
 button:active{
     transform:scale(.96);
 }
+
+.leaderRow{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 0;
+    border-bottom:1px solid #ddd;
+    font-size:18px;
+}
 </style>
 </head>
+
 <body>
 
 <div id="score">Score: 0</div>
+
 <div id="target"></div>
 
 <div id="overlay">
-    <div id="popup">
-        <h1>🎮 Game Over</h1>
-        <p id="finalScore"></p>
+<div id="popup">
 
-        <div class="buttons">
-            <button id="restart">🔄 Play Again</button>
-            <button id="close">❌ Exit</button>
-        </div>
-    </div>
+<h1>🎮 Game Over</h1>
+
+<p id="finalScore"></p>
+
+<div id="leaderboard"></div>
+
+<div class="buttons">
+<button id="restart">🔄 Play Again</button>
+<button id="close">❌ Exit</button>
 </div>
 
-<script>
+</div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+query,
+orderBy,
+limit,
+getDocs
+}
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAyqbh4H8Kiw-dYT1RkXD3Nvs63zE-w8bY",
+  authDomain: "githubmrsc.firebaseapp.com",
+  databaseURL: "https://githubmrsc-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "githubmrsc",
+  storageBucket: "githubmrsc.firebasestorage.app",
+  messagingSenderId: "386849806453",
+  appId: "1:386849806453:web:5c4d9274a9def8c65cc03c",
+  measurementId: "G-J4M2RFEMNY"
+};
+/*
+----------------------------------------
+PASTE YOUR FIREBASE CONFIG BELOW
+----------------------------------------
+*/
+
+const firebaseConfig = {
+
+apiKey:"",
+
+authDomain:"",
+
+projectId:"",
+
+storageBucket:"",
+
+messagingSenderId:"",
+
+appId:""
+
+};
+
+/*
+----------------------------------------
+END FIREBASE CONFIG
+----------------------------------------
+*/
+
+const app=initializeApp(firebaseConfig);
+
+const db=getFirestore(app);
+
 const target=document.getElementById("target");
+
 const scoreText=document.getElementById("score");
+
 const overlay=document.getElementById("overlay");
+
 const finalScore=document.getElementById("finalScore");
+
+const leaderboard=document.getElementById("leaderboard");
+
 const restart=document.getElementById("restart");
+
 const closeBtn=document.getElementById("close");
 
 let score=0;
+
 let moveInterval=1000;
+
 let timer;
+
 let gameOver=false;
 
 function move(){
-    if(gameOver) return;
 
-    target.style.left=Math.random()*(window.innerWidth-80)+"px";
-    target.style.top=Math.random()*(window.innerHeight-80)+"px";
+if(gameOver) return;
+
+target.style.left=Math.random()*(window.innerWidth-80)+"px";
+
+target.style.top=Math.random()*(window.innerHeight-80)+"px";
+
 }
 
 function startTimer(){
-    clearInterval(timer);
-    timer=setInterval(move,moveInterval);
+
+clearInterval(timer);
+
+timer=setInterval(move,moveInterval);
+
+}
+async function saveScore(score){
+
+    const name = prompt("Enter your name","Anonymous") || "Anonymous";
+
+    try{
+
+        await addDoc(collection(db,"scores"),{
+            name:name,
+            score:score,
+            date:Date.now()
+        });
+
+    }catch(err){
+        console.error(err);
+    }
+
 }
 
-function endGame(){
+async function loadLeaderboard(){
+
+    leaderboard.innerHTML="<h2>Loading...</h2>";
+
+    try{
+
+        const q=query(
+            collection(db,"scores"),
+            orderBy("score","desc"),
+            limit(10)
+        );
+
+        const snap=await getDocs(q);
+
+        let html="<h2>🏆 Top 10 Leaderboard</h2>";
+
+        let rank=1;
+
+        snap.forEach(doc=>{
+
+            const s=doc.data();
+
+            html+=`
+            <div class="leaderRow">
+                <span>${rank}. ${s.name}</span>
+                <strong>${s.score}</strong>
+            </div>
+            `;
+
+            rank++;
+
+        });
+
+        leaderboard.innerHTML=html;
+
+    }catch(err){
+
+        leaderboard.innerHTML="<p>Unable to load leaderboard.</p>";
+
+        console.error(err);
+
+    }
+
+}
+
+async function endGame(){
+
     if(gameOver) return;
 
     gameOver=true;
+
     clearInterval(timer);
 
     finalScore.innerHTML=
-        "🏆 Final Score<br><strong style='font-size:42px;color:#ff9500'>"+score+"</strong>";
+    `
+    🏆 Final Score<br><br>
+    <span style="
+        font-size:48px;
+        color:#ff9500;
+        font-weight:bold;">
+        ${score}
+    </span>
+    `;
 
     overlay.style.display="flex";
+
+    await saveScore(score);
+
+    await loadLeaderboard();
+
 }
 
 document.addEventListener("pointerdown",e=>{
@@ -173,11 +326,15 @@ document.addEventListener("pointerdown",e=>{
     if(e.target===target){
 
         score++;
+
         scoreText.textContent="Score: "+score;
 
         if(score%10===0){
+
             moveInterval*=0.9;
+
             startTimer();
+
         }
 
         move();
@@ -190,16 +347,24 @@ document.addEventListener("pointerdown",e=>{
 
 });
 
-restart.onclick=()=>location.reload();
+restart.onclick=()=>{
+
+    location.reload();
+
+};
 
 closeBtn.onclick=()=>{
+
     overlay.style.display="none";
+
 };
 
 move();
+
 startTimer();
 
 window.addEventListener("resize",move);
+
 </script>
 
 </body>
